@@ -19,10 +19,12 @@ Route::middleware('guest')->group(function () {
 });
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::middleware(['auth', 'admin'])->get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+// Route::middleware(['auth', 'admin'])->get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+Route::middleware(['auth'])->get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
 
 // FileUploadController
-// WLL Uploader
 Route::controller(FileUploadController::class)->prefix('wll-uploader')->group(function () {
     Route::post('/', 'show_uploader');
     Route::post('/upload', 'upload');  

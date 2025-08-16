@@ -75,9 +75,10 @@ class FileUploadController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+
     public function upload(Request $request)
     {
-        $type = array(
+        $type = [
             "jpg" => "image",
             "jpeg" => "image",
             "png" => "image",
@@ -112,55 +113,42 @@ class FileUploadController extends Controller
             "xlr" => "document",
             "xls" => "document",
             "xlsx" => "document"
-        );
+        ];
 
         if ($request->hasFile('wll_doc_file')) {
             $upload = new FileUpload;
             $extension = strtolower($request->file('wll_doc_file')->getClientOriginalExtension());
 
-            if (
-                env('DEMO_MODE') == 'On' &&
-                isset($type[$extension]) &&
-                $type[$extension] == 'archive'
-            ) {
+            if (env('DEMO_MODE') == 'On' && isset($type[$extension]) && $type[$extension] == 'archive') {
                 return '{}';
             }
 
             if (isset($type[$extension])) {
-                $upload->file_original_name = null;
-                $arr = explode('.', $request->file('wll_doc_file')->getClientOriginalName());
-                for ($i = 0; $i < count($arr) - 1; $i++) {
-                    if ($i == 0) {
-                        $upload->file_original_name .= $arr[$i];
-                    } else {
-                        $upload->file_original_name .= "." . $arr[$i];
-                    }
-                }
+                // Get original file name without extension
+                $originalNameParts = explode('.', $request->file('wll_doc_file')->getClientOriginalName());
+                array_pop($originalNameParts); // remove extension part
+                $upload->file_original_name = implode('.', $originalNameParts);
 
                 if ($extension == 'svg') {
                     $sanitizer = new Sanitizer();
-                    // Load the dirty svg
                     $dirtySVG = file_get_contents($request->file('wll_doc_file'));
-                    // Pass it to the sanitizer and get it back clean
                     $cleanSVG = $sanitizer->sanitize($dirtySVG);
-                    // Load the clean svg
-                    file_put_contents($request->file('wll_doc_file'), $cleanSVG);
+                    // Save cleaned SVG temporarily to a path
+                    $tempPath = sys_get_temp_dir() . '/' . uniqid() . '.svg';
+                    file_put_contents($tempPath, $cleanSVG);
+                    $request->files->set('wll_doc_file', new \Illuminate\Http\File($tempPath));
                 }
 
-                $path = $request->file('wll_doc_file')->store('uploads/files', 'local');
+                // Store file in storage/app/public/uploads/files
+                $path = $request->file('wll_doc_file')->store('uploads/files', 'public');
                 $size = $request->file('wll_doc_file')->getSize();
 
-                // Return MIME type ala mimetype extension
-                $finfo = finfo_open(FILEINFO_MIME_TYPE);
-
-                // Get the MIME type of the file
-                $file_mime = finfo_file($finfo, base_path('public/') . $path);
-                // && get_setting('disable_image_optimization') != 1
                 if ($type[$extension] == 'image') {
                     try {
                         $img = Image::make($request->file('wll_doc_file')->getRealPath())->encode();
                         $height = $img->height();
                         $width = $img->width();
+
                         if ($width > $height && $width > 1500) {
                             $img->resize(1500, null, function ($constraint) {
                                 $constraint->aspectRatio();
@@ -170,39 +158,28 @@ class FileUploadController extends Controller
                                 $constraint->aspectRatio();
                             });
                         }
-                        $img->save(base_path('public/uploads/files/') . $path);
+
+                        // Save resized image to storage/app/public/uploads/files/filename
+                        $img->save(storage_path('app/public/' . $path));
                         clearstatcache();
                         $size = $img->filesize();
                     } catch (\Exception $e) {
-                        //dd($e);
-                    }
-                }
-
-                if (env('FILESYSTEM_DRIVER') != 'local') {
-                    Storage::disk(env('FILESYSTEM_DRIVER'))->put(
-                        $path,
-                        file_get_contents(base_path('public/') . $path),
-                        [
-                            'visibility' => 'public',
-                            'ContentType' =>  $extension == 'svg' ? 'image/svg+xml' : $file_mime
-                        ]
-                    );
-                    // dd($storage);
-                    if ($arr[0] != 'updates') {
-                        unlink(base_path('public/') . $path);
+                        // Handle exception if needed
                     }
                 }
 
                 $upload->extension = $extension;
-                $upload->file_name = $path;
-                $upload->user_id = Auth::user()->id;
-                $upload->type = $type[$upload->extension];
+                $upload->file_name = $path; // relative to storage/app/public
+                $upload->user_id = Auth::id();
+                $upload->type = $type[$extension];
                 $upload->file_size = $size;
                 $upload->save();
+
+                return '{}';
             }
-            return '{}';
         }
     }
+
 
     public function destroy($id)
     {
@@ -246,8 +223,6 @@ class FileUploadController extends Controller
         }
     }
 
-
-
     public function get_uploaded_files(Request $request)
     {
         $uploads = FileUpload::where('user_id', Auth::user()->id);
@@ -277,7 +252,6 @@ class FileUploadController extends Controller
         return $uploads->paginate(60)->appends(request()->query());
     }
 
-
     public function get_preview_files(Request $request)
     {
         $ids = explode(',', $request->ids);
@@ -290,9 +264,7 @@ class FileUploadController extends Controller
             }
             $new_file_array[] = $file;
         }
-        // dd($new_file_array);
         return $new_file_array;
-        // return $files;
     }
 
     public function show_uploader(Request $request)
@@ -300,12 +272,10 @@ class FileUploadController extends Controller
         return view('uploader.file-uploader');
     }
 
-    // uploaded file info
     public function uploaded_files_info(Request $request)
     {
         $file = FileUpload::findOrFail($request['id']);
 
         return view('backend.files.info', compact('file'));
     }
-    
 }

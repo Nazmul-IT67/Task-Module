@@ -1,4 +1,4 @@
-<script>
+{{-- <script>
     $(function() {
         "use strict";
         $(".meta-keyward").select2({
@@ -928,4 +928,4 @@
 
         }
     }(jQuery));
-</script>
+</script> --}}

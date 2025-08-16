@@ -62,7 +62,7 @@
                                 } else {
                                     $file_name = $file->file_original_name;
                                 }
-                                $file_path = my_asset($file->file_name);
+                                $file_path = asset('storage/' . $file->file_name);
                                 if ($file->external_link) {
                                     $file_path = $file->external_link;
                                 }

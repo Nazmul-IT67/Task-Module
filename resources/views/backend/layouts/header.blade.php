@@ -27,7 +27,7 @@
     <link href="{{ asset('backend/css/app.css') }}" rel="stylesheet">
 
 
-    @stack('css')
+    {{-- @stack('css') --}}
 
     <script>
         var WLL = WLL || {};

@@ -76,7 +76,7 @@
                     <li>
                         <a class="sidebar-link d-flex align-items-center" href="{{ route('languages.index') }}">
                             <i class="fa-solid fa-minus me-2"></i>
-                            Languages List
+                            Languages
                         </a>
                     </li>
                     <li>
