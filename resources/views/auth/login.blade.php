@@ -23,7 +23,7 @@
                     <label for="email" class="label">Email</label>
                     <i class="bx bx-user icon"></i>
                 </div>
-                
+
                 <div class="input_box">
                     <input type="password" name="password" id="password" class="input-field" required>
                     <label for="pass" class="label">Password</label>
@@ -48,7 +48,15 @@
             <div class="register">
                 <span>Don't have an account? <a href="{{ route('register')}}">Register</a></span>
             </div>
+            <div>
+                <h4>Demo Access</h4>
+                <p><b>Email:</b> nazmul.cse67@gmail.com</p>
+                <p><b>Password:</b> admin@123</p>
+            </div>
         </div>
+        <div class="access-user text-center" style="margin-top:20px;">
+        </div>
+
     </div>
 
     <!-- Include jQuery -->

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone')->nullable();
             $table->string('image')->nullable();
-            $table->string('user_type')->default('customer')->comment('customer, seller, admin, staff');
+            $table->string('user_type')->default('user')->comment('1=admin, 2=staff, 3=customer, 4=seller');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->integer('status')->default(1)->comment('Active=1, Inactive=0');

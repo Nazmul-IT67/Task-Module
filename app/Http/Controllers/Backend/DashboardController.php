@@ -28,13 +28,9 @@ class DashboardController extends Controller
         $page_title = 'Dashboard';
 
         $role = Auth::user()->user_type;
-
-        return match ($role) {
-            'admin'    => view('backend.dashboard.index', compact('page_title')),
-            'customer' => view('backend.dashboard.customer'),
-            'seller'   => view('dashboard.seller'),
-            'staff'    => view('dashboard.staff'),
-            default    => abort(403, 'Unauthorized access'),
+            return match ($role) {
+            'admin', 'staff', 'seller', 'customer' => view('backend.dashboard.index', compact('page_title')),
+            default => abort(403, 'Unauthorized access'),
         };
     }
 
